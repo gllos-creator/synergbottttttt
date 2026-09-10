@@ -3,20 +3,14 @@ from aiogram import Bot, Dispatcher, F from aiogram.filters import CommandStart 
 TOKEN = os.environ["BOT_TOKEN"] GROUP_ID = int(os.environ["GROUP_ID"])
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=TOKEN) dp = Dispatcher()
-users = {}
 def get_keyboard(): return InlineKeyboardMarkup( inline_keyboard=[ [ InlineKeyboardButton( text="✉️ Отправить анонимно", callback_data="anonymous" ) ] ] )
 @dp.message(CommandStart()) async def start(message: Message): await message.answer( "👋 Привет!\n\n" "Отправь мне сообщение, и я опубликую его в группе анонимно.\n" "Твоё имя участникам группы показано не будет.", reply_markup=get_keyboard() )
-@dp.callback_query(F.data == "anonymous") async def anonymous(callback: CallbackQuery): await callback.message.answer( "✍️ Отправь мне сообщение." ) await callback.answer()
-@dp.message() async def receive(message: Message):
-if message.chat.type != "private":
-    return
-
-sent = None
-
+@dp.callback_query(F.data == "anonymous") async def anonymous(callback: CallbackQuery): await callback.message.answer("✍️ Отправь мне сообщение.") await callback.answer()
+@dp.message() async def receive(message: Message): if message.chat.type != "private": return
 if message.text:
     text = html.escape(message.text)
 
-    sent = await bot.send_message(
+    await bot.send_message(
         GROUP_ID,
         "📩 <b>Анонимное сообщение</b>\n\n" + text,
         parse_mode="HTML"
@@ -25,7 +19,7 @@ if message.text:
 elif message.photo:
     caption = html.escape(message.caption or "")
 
-    sent = await bot.send_photo(
+    await bot.send_photo(
         GROUP_ID,
         message.photo[-1].file_id,
         caption="📩 <b>Анонимное сообщение</b>\n\n" + caption,
@@ -35,7 +29,7 @@ elif message.photo:
 elif message.video:
     caption = html.escape(message.caption or "")
 
-    sent = await bot.send_video(
+    await bot.send_video(
         GROUP_ID,
         message.video.file_id,
         caption="📩 <b>Анонимное сообщение</b>\n\n" + caption,
@@ -43,36 +37,29 @@ elif message.video:
     )
 
 elif message.voice:
-    sent = await bot.send_voice(
+    await bot.send_voice(
         GROUP_ID,
         message.voice.file_id,
         caption="📩 Анонимное голосовое"
     )
 
 elif message.document:
-    sent = await bot.send_document(
+    await bot.send_document(
         GROUP_ID,
         message.document.file_id,
         caption="📩 Анонимный документ"
     )
 
 elif message.sticker:
-    sent = await bot.send_sticker(
+    await bot.send_sticker(
         GROUP_ID,
         message.sticker.file_id
     )
 
 else:
-    await message.answer(
-        "❌ Этот тип сообщения пока не поддерживается."
-    )
+    await message.answer("❌ Этот тип сообщения пока не поддерживается.")
     return
 
-users[sent.message_id] = message.from_user.id
-
-await message.answer(
-    "✅ Сообщение отправлено анонимно."
-)
+await message.answer("✅ Сообщение отправлено анонимно.")
 async def main(): print("🤖 Бот запущен!") await dp.start_polling(bot)
-if name == "main": asyncio.run(main(
-    
+if name == "main": asyncio.run(main())
