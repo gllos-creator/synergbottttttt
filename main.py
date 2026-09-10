@@ -5,7 +5,7 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=TOKEN) dp = Dispatcher()
 def get_keyboard(): return InlineKeyboardMarkup( inline_keyboard=[ [ InlineKeyboardButton( text="✉️ Отправить анонимно", callback_data="anonymous" ) ] ] )
 @dp.message(CommandStart()) async def start(message: Message): await message.answer( "👋 Привет!\n\n" "Отправь мне сообщение, и я опубликую его в группе анонимно.\n" "Твоё имя участникам группы показано не будет.", reply_markup=get_keyboard() )
-@dp.callback_query(F.data == "anonymous") async def anonymous(callback: CallbackQuery): await callback.message.answer("✍️ Отправь мне сообщение.") await callback.answer()
+@dp.callback_query(F.data == "anonymous") async def anonymous(callback: CallbackQuery): await callback.message.answer( "✍️ Отправь мне сообщение." ) await callback.answer()
 @dp.message() async def receive(message: Message): if message.chat.type != "private": return
 if message.text:
     text = html.escape(message.text)
@@ -57,9 +57,13 @@ elif message.sticker:
     )
 
 else:
-    await message.answer("❌ Этот тип сообщения пока не поддерживается.")
+    await message.answer(
+        "❌ Этот тип сообщения пока не поддерживается."
+    )
     return
 
-await message.answer("✅ Сообщение отправлено анонимно.")
+await message.answer(
+    "✅ Сообщение отправлено анонимно."
+)
 async def main(): print("🤖 Бот запущен!") await dp.start_polling(bot)
 if name == "main": asyncio.run(main())
